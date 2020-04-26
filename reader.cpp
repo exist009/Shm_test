@@ -30,6 +30,8 @@ auto main(int argc, char *argv[]) -> int
 
 	auto total(0);
 
+	bool total_start(false);
+
 	auto counter(0);
 
 	auto data_loss(0);
@@ -49,10 +51,18 @@ auto main(int argc, char *argv[]) -> int
 			goto next;
 		}
 
+		total_start = true;
+
 		if (segment.get_status() & Shm::Status::s_data_loss)
 		{
 			data_loss++;
 			goto next;
+		}
+
+		if (segment.get_status() & Shm::Status::s_is_writing)
+		{
+			std::cout << "Test failed: ring buffer (tail -> head)" << std::endl;
+			return 0;
 		}
 
 		if (segment.get_status() & Shm::Status::s_error)
@@ -87,7 +97,7 @@ next:
 			Tools::usleep(sleep_left);
 		}
 
-		total++;
+		if (total_start) total++;
 	}
 
 	std::cout << "--------------" << std::endl;
